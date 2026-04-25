@@ -2,16 +2,23 @@ import type { Account } from '../types';
 
 interface AccountCardProps {
   account: Account;
+  isSelected: boolean;
+  onSelect: (id: string | null) => void;
 }
 
-function AccountCard({ account }: AccountCardProps) {
+function AccountCard({ account, isSelected, onSelect }: AccountCardProps) {
   const formattedBalance = new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
   }).format(account.balance);
 
   return (
-    <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200">
+    <div
+      onClick={() => onSelect(isSelected ? null : account.id)}
+      className={`bg-white rounded-2xl p-6 shadow-sm border transition-all duration-200 cursor-pointer hover:shadow-md ${
+        isSelected ? 'border-blue-400 ring-2 ring-blue-100' : 'border-gray-100'
+      }`}
+    >
       <div className="flex items-start justify-between mb-5">
         <p className="text-xs text-gray-400 uppercase tracking-widest font-medium">
           {account.type}
