@@ -1,12 +1,9 @@
-import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../store';
 import AccountCard from './AccountCard';
-import TransactionList from './TransactionList';
 
 function AccountsOverview() {
   const accounts = useSelector((state: RootState) => state.accounts.accounts);
-  const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
 
   const totalBalance = accounts.reduce((sum, account) => sum + account.balance, 0);
   const formattedTotal = new Intl.NumberFormat('en-US', {
@@ -24,17 +21,9 @@ function AccountsOverview() {
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {accounts.map((account) => (
-          <AccountCard
-            key={account.id}
-            account={account}
-            isSelected={selectedAccountId === account.id}
-            onSelect={setSelectedAccountId}
-          />
+          <AccountCard key={account.id} account={account} />
         ))}
       </div>
-      {selectedAccountId && (
-        <TransactionList accountId={selectedAccountId} />
-      )}
     </section>
   );
 }

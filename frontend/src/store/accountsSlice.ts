@@ -1,8 +1,9 @@
 import { createSlice } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import type { Account } from '../types';
+import { addTransaction } from './transactionsSlice';
 
-interface AccountsState {
+export interface AccountsState {
   accounts: Account[];
 }
 
@@ -27,6 +28,15 @@ const accountsSlice = createSlice({
         account.balance = action.payload.balance;
       }
     },
+  },
+  extraReducers: (builder) => {
+    builder.addCase(addTransaction, (state, action) => {
+      const { accountId, amount, type } = action.payload;
+      const account = state.accounts.find((a) => a.id === accountId);
+      if (account) {
+        account.balance += type === 'credit' ? amount : -amount;
+      }
+    });
   },
 });
 

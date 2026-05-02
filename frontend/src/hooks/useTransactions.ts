@@ -1,23 +1,30 @@
-import { useEffect } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import type { RootState, AppDispatch } from '../store';
+import { useMemo } from 'react';
+import { useSelector } from 'react-redux';
+import type { RootState } from '../store';
 import type { Transaction } from '../types';
-import { updateBalance } from '../store/accountsSlice';
 
-function useTransactions(accountId: string): Transaction[] {
-  const dispatch = useDispatch<AppDispatch>();
-  const transactions = useSelector((state: RootState) =>
-    state.transactions.transactions.filter((t) => t.accountId === accountId)
-  );
+export interface TransactionFilters {
+  type?: 'all' | 'credit' | 'debit';
+  query?: string;
+}
 
-  useEffect(() => {
-    const balance = transactions.reduce((sum, t) => {
-      return t.type === 'credit' ? sum + t.amount : sum - t.amount;
-    }, 0);
-    dispatch(updateBalance({ accountId, balance }));
-  }, [transactions, accountId, dispatch]);
+function useTransactions(accountId: string, filters?: TransactionFilters): Transaction[] {
+  const allTransactions = useSelector((state: RootState) => state.transactions.transactions);
 
-  return transactions;
+  return useMemo(() => {
+    let result = allTransactions.filter((t) => t.accountId === accountId);
+
+    if (filters?.type && filters.type !== 'all') {
+      result = result.filter((t) => t.type === filters.type);
+    }
+
+    if (filters?.query) {
+      const q = filters.query.toLowerCase();
+      result = result.filter((t) => t.description.toLowerCase().includes(q));
+    }
+
+    return result;
+  }, [allTransactions, accountId, filters?.type, filters?.query]);
 }
 
 export default useTransactions;

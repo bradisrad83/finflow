@@ -2,7 +2,7 @@ import { createSlice } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import type { Transaction } from '../types';
 
-interface TransactionsState {
+export interface TransactionsState {
   transactions: Transaction[];
 }
 

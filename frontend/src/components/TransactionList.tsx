@@ -1,12 +1,14 @@
 import AddTransactionForm from './AddTransactionForm';
 import useTransactions from '../hooks/useTransactions';
+import type { TransactionFilters } from '../hooks/useTransactions';
 
 interface TransactionListProps {
   accountId: string;
+  filters?: TransactionFilters;
 }
 
-function TransactionList({ accountId }: TransactionListProps) {
-  const transactions = useTransactions(accountId);
+function TransactionList({ accountId, filters }: TransactionListProps) {
+  const transactions = useTransactions(accountId, filters);
 
   return (
     <div className="mt-8">
