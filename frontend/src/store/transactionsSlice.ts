@@ -1,9 +1,12 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import type { Transaction } from '../types';
+import * as api from '../api';
 
 export interface TransactionsState {
   transactions: Transaction[];
+  loading: boolean;
+  error: string | null;
 }
 
 const initialState: TransactionsState = {
@@ -17,7 +20,14 @@ const initialState: TransactionsState = {
     { id: 't7', accountId: '3', description: 'Transfer from Checking', amount: 200.00, type: 'credit', date: '2026-04-10', category: 'Transfer' },
     { id: 't8', accountId: '3', description: 'Flight - JFK to LAX', amount: 310.00, type: 'debit', date: '2026-04-08', category: 'Travel' },
   ],
+  loading: false,
+  error: null,
 };
+
+export const fetchTransactions = createAsyncThunk<Transaction[], string>(
+  'transactions/fetchTransactions',
+  (accountId) => api.fetchTransactions(accountId),
+);
 
 const transactionsSlice = createSlice({
   name: 'transactions',
@@ -26,8 +36,26 @@ const transactionsSlice = createSlice({
     addTransaction: (state, action: PayloadAction<Transaction>) => {
       state.transactions.push(action.payload);
     },
+    removeTransaction: (state, action: PayloadAction<Transaction>) => {
+      state.transactions = state.transactions.filter((t) => t.id !== action.payload.id);
+    },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchTransactions.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchTransactions.fulfilled, (state, action) => {
+        state.loading = false;
+        state.transactions = action.payload;
+      })
+      .addCase(fetchTransactions.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message ?? 'Failed to load transactions';
+      });
   },
 });
 
-export const { addTransaction } = transactionsSlice.actions;
+export const { addTransaction, removeTransaction } = transactionsSlice.actions;
 export default transactionsSlice.reducer;

@@ -1,10 +1,13 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import type { Account } from '../types';
-import { addTransaction } from './transactionsSlice';
+import { addTransaction, removeTransaction } from './transactionsSlice';
+import * as api from '../api';
 
 export interface AccountsState {
   accounts: Account[];
+  loading: boolean;
+  error: string | null;
 }
 
 const initialState: AccountsState = {
@@ -13,7 +16,14 @@ const initialState: AccountsState = {
     { id: '2', name: 'Emergency Savings', type: 'savings', balance: 8200.50 },
     { id: '3', name: 'Travel Fund', type: 'savings', balance: 3100.75 },
   ],
+  loading: false,
+  error: null,
 };
+
+export const refreshBalances = createAsyncThunk<{ id: string; balance: number }[]>(
+  'accounts/refreshBalances',
+  () => api.fetchBalances(),
+);
 
 const accountsSlice = createSlice({
   name: 'accounts',
@@ -30,13 +40,38 @@ const accountsSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    builder.addCase(addTransaction, (state, action) => {
-      const { accountId, amount, type } = action.payload;
-      const account = state.accounts.find((a) => a.id === accountId);
-      if (account) {
-        account.balance += type === 'credit' ? amount : -amount;
-      }
-    });
+    builder
+      .addCase(addTransaction, (state, action) => {
+        const { accountId, amount, type } = action.payload;
+        const account = state.accounts.find((a) => a.id === accountId);
+        if (account) {
+          account.balance += type === 'credit' ? amount : -amount;
+        }
+      })
+      .addCase(removeTransaction, (state, action) => {
+        const { accountId, amount, type } = action.payload;
+        const account = state.accounts.find((a) => a.id === accountId);
+        if (account) {
+          account.balance -= type === 'credit' ? amount : -amount;
+        }
+      })
+      .addCase(refreshBalances.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(refreshBalances.fulfilled, (state, action) => {
+        state.loading = false;
+        action.payload.forEach((update) => {
+          const account = state.accounts.find((a) => a.id === update.id);
+          if (account) {
+            account.balance = update.balance;
+          }
+        });
+      })
+      .addCase(refreshBalances.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message ?? 'Failed to refresh balances';
+      });
   },
 });
 
