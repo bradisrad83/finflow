@@ -47,9 +47,9 @@ function SpendingSummary() {
   return (
     <section className="px-8 pb-10">
       <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-50 mb-6">Spending summary</h2>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
         <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden">
-          <div className="px-5 py-4 border-b border-gray-50 dark:border-gray-700 flex items-center justify-between">
+          <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
             <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">Spending</span>
             <span className="text-sm font-semibold tabular-nums text-gray-900 dark:text-gray-50">{fmt(totalSpending)}</span>
           </div>
@@ -71,7 +71,7 @@ function SpendingSummary() {
         </div>
 
         <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden">
-          <div className="px-5 py-4 border-b border-gray-50 dark:border-gray-700 flex items-center justify-between">
+          <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
             <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">Income</span>
             <span className="text-sm font-semibold tabular-nums text-emerald-600 dark:text-emerald-400">{fmt(totalIncome)}</span>
           </div>
