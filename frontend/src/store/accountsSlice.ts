@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import type { Account } from '../types';
-import { addTransaction, removeTransaction } from './transactionsSlice';
+import { addTransaction, removeTransaction, createTransactionThunk, deleteTransactionThunk } from './transactionsSlice';
 import * as api from '../api';
 
 export interface AccountsState {
@@ -19,6 +19,11 @@ const initialState: AccountsState = {
   loading: false,
   error: null,
 };
+
+export const createAccountThunk = createAsyncThunk<Account, Account>(
+  'accounts/create',
+  (account) => api.createAccount(account),
+);
 
 export const refreshBalances = createAsyncThunk<{ id: string; balance: number }[]>(
   'accounts/refreshBalances',
@@ -54,6 +59,23 @@ const accountsSlice = createSlice({
         if (account) {
           account.balance -= type === 'credit' ? amount : -amount;
         }
+      })
+      .addCase(createTransactionThunk.fulfilled, (state, action) => {
+        const { accountId, amount, type } = action.payload;
+        const account = state.accounts.find((a) => a.id === accountId);
+        if (account) {
+          account.balance += type === 'credit' ? amount : -amount;
+        }
+      })
+      .addCase(deleteTransactionThunk.fulfilled, (state, action) => {
+        const { accountId, amount, type } = action.payload;
+        const account = state.accounts.find((a) => a.id === accountId);
+        if (account) {
+          account.balance -= type === 'credit' ? amount : -amount;
+        }
+      })
+      .addCase(createAccountThunk.fulfilled, (state, action) => {
+        state.accounts.push(action.payload);
       })
       .addCase(refreshBalances.pending, (state) => {
         state.loading = true;

@@ -24,19 +24,12 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return res.json() as Promise<T>;
 }
 
-// ---------------------------------------------------------------------------
-// Mocks — replace each function body with a `return request<T>(...)` call
-// when the Haskell backend is ready. The signatures and return types stay the same.
-// ---------------------------------------------------------------------------
-
 export async function fetchAccounts(): Promise<Account[]> {
-  // return request<Account[]>('/accounts');
-  await sleep(300);
-  return [];
+  return request<Account[]>('/accounts');
 }
 
 export async function fetchBalances(): Promise<{ id: string; balance: number }[]> {
-  // return request<{ id: string; balance: number }[]>('/accounts/balances');
+  // No Haskell endpoint yet — still mocked.
   await sleep(1000);
   return [
     { id: '1', balance: round(10000 + Math.random() * 5000) },
@@ -46,31 +39,23 @@ export async function fetchBalances(): Promise<{ id: string; balance: number }[]
 }
 
 export async function fetchTransactions(accountId: string): Promise<Transaction[]> {
-  // return request<Transaction[]>(`/accounts/${accountId}/transactions`);
-  await sleep(300);
-  void accountId;
-  return [];
+  return request<Transaction[]>(`/accounts/${accountId}/transactions`);
 }
 
-export async function createAccount(data: Omit<Account, 'id'>): Promise<Account> {
-  // return request<Account>('/accounts', { method: 'POST', body: JSON.stringify(data) });
-  await sleep(200);
-  return { ...data, id: crypto.randomUUID() };
+export async function createAccount(account: Account): Promise<Account> {
+  return request<Account>('/accounts', { method: 'POST', body: JSON.stringify(account) });
 }
 
-export async function createTransaction(data: Omit<Transaction, 'id'>): Promise<Transaction> {
-  // return request<Transaction>('/transactions', { method: 'POST', body: JSON.stringify(data) });
-  await sleep(200);
-  return { ...data, id: crypto.randomUUID() };
+export async function createTransaction(transaction: Transaction): Promise<Transaction> {
+  return request<Transaction>(
+    `/accounts/${transaction.accountId}/transactions`,
+    { method: 'POST', body: JSON.stringify(transaction) },
+  );
 }
 
 export async function deleteTransaction(id: string): Promise<void> {
-  // return request<void>(`/transactions/${id}`, { method: 'DELETE' });
-  await sleep(200);
-  void id;
+  return request<void>(`/transactions/${id}`, { method: 'DELETE' });
 }
-
-// ---------------------------------------------------------------------------
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));

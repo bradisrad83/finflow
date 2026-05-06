@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useReducer } from 'react';
 import { useDispatch } from 'react-redux';
 import type { AppDispatch } from '../store';
-import { addTransaction, removeTransaction } from '../store/transactionsSlice';
+import { createTransactionThunk, deleteTransactionThunk } from '../store/transactionsSlice';
 import type { Transaction } from '../types';
 import AddTransactionForm from './AddTransactionForm';
 import TransactionRow from './TransactionRow';
@@ -45,17 +45,25 @@ function TransactionList({ accountId, filters }: TransactionListProps) {
   const [toast, toastDispatch] = useReducer(toastReducer, { status: 'hidden' });
 
   const handleDelete = useCallback(
-    (transaction: Transaction) => {
-      dispatch(removeTransaction(transaction));
-      toastDispatch({ type: 'show', transaction });
+    async (transaction: Transaction) => {
+      try {
+        await dispatch(deleteTransactionThunk(transaction)).unwrap();
+        toastDispatch({ type: 'show', transaction });
+      } catch {
+        // transaction not deleted — no toast
+      }
     },
     [dispatch],
   );
 
-  const handleUndo = useCallback(() => {
+  const handleUndo = useCallback(async () => {
     if (toast.status === 'hidden') return;
-    dispatch(addTransaction(toast.transaction));
     toastDispatch({ type: 'hide' });
+    try {
+      await dispatch(createTransactionThunk(toast.transaction)).unwrap();
+    } catch {
+      // undo failed silently — toast already dismissed
+    }
   }, [dispatch, toast]);
 
   useEffect(() => {

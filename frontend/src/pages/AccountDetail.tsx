@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { useSelector } from 'react-redux';
-import type { RootState } from '../store';
+import { useDispatch, useSelector } from 'react-redux';
+import type { AppDispatch, RootState } from '../store';
+import { fetchTransactions } from '../store/transactionsSlice';
 import TransactionList from '../components/TransactionList';
 
 type FilterType = 'all' | 'credit' | 'debit';
@@ -12,8 +13,16 @@ function AccountDetail() {
     state.accounts.accounts.find((a) => a.id === id)
   );
 
+  const dispatch = useDispatch<AppDispatch>();
+  const txLoading = useSelector((state: RootState) => state.transactions.loading);
+  const txError = useSelector((state: RootState) => state.transactions.error);
+
   const [filterType, setFilterType] = useState<FilterType>('all');
   const [query, setQuery] = useState('');
+
+  useEffect(() => {
+    if (id) dispatch(fetchTransactions(id));
+  }, [id, dispatch]);
 
   if (!account) {
     return (
@@ -76,7 +85,14 @@ function AccountDetail() {
           className="flex-1 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-500/30 focus:border-blue-300 dark:focus:border-blue-400"
         />
       </div>
-      <TransactionList accountId={account.id} filters={{ type: filterType, query }} />
+      {txError && (
+        <p className="mt-6 text-sm text-red-500 dark:text-red-400">{txError}</p>
+      )}
+      {txLoading ? (
+        <p className="mt-8 text-sm text-gray-400 dark:text-gray-500">Loading transactions…</p>
+      ) : (
+        <TransactionList accountId={account.id} filters={{ type: filterType, query }} />
+      )}
     </section>
   );
 }

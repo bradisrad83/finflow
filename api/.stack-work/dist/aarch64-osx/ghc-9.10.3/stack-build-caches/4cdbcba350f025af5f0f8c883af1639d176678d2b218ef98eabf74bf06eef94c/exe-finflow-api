@@ -1,0 +1,14 @@
+/Users/bradgoldsmith/.ghcup/ghc/9.10.3/lib/ghc-9.10.3/lib/aarch64-osx-ghc-9.10.3/rts-1.0.2/include/ghcversion.h:
+  hash: 7590ea01e313d089c303211ba85b0e4454627be40dcb88be287ed32f7e97187f
+? /Users/bradgoldsmith/Desktop/macbook-air/repos/finflow/api/.stack-work/dist/aarch64-osx/ghc-9.10.3/build/finflow-api/autogen/Paths_finflow_api.hs
+: hash: d35c22ef8b6827c53b74d9e00552106b6a45e9fbf93d1e965839ed93ff13555f
+? /Users/bradgoldsmith/Desktop/macbook-air/repos/finflow/api/.stack-work/dist/aarch64-osx/ghc-9.10.3/build/finflow-api/autogen/cabal_macros.h
+: hash: 215582032eabd0cd5d75b811fc5121e2b4fb6e6c4ddea74ae96f0a2473c5edd6
+/Users/bradgoldsmith/Desktop/macbook-air/repos/finflow/api/finflow-api.cabal:
+  hash: b882ff0eaade19eb7888dcf9438fc43f87f3dbc9c171142e1663947c8d79c11f
+/Users/bradgoldsmith/Desktop/macbook-air/repos/finflow/api/package.yaml:
+  hash: 60a33981ead5bf91266e16cb90c46d3716b95c4ee5afaf3c484c1d0340c7a294
+/Users/bradgoldsmith/Desktop/macbook-air/repos/finflow/api/src/Main.hs:
+  hash: b0700b116b0e290e6cd2f161b6f975faf1642232ec50e5d5589e9285b6cf17bc
+/Users/bradgoldsmith/Desktop/macbook-air/repos/finflow/api/src/Types.hs:
+  hash: 490fd0c2a014ef9f179957128a75a0e5bcfa7272bb5ec0b03fda05ffcd7f8213

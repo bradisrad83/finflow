@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useDispatch } from 'react-redux';
 import type { AppDispatch } from '../store';
-import { addAccount } from '../store/accountsSlice';
+import { createAccountThunk } from '../store/accountsSlice';
 
 interface AddAccountModalProps {
   onClose: () => void;
@@ -14,6 +14,7 @@ function AddAccountModal({ onClose }: AddAccountModalProps) {
   const [type, setType] = useState<'checking' | 'savings'>('checking');
 
   const isValid = name.trim() !== '';
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -23,18 +24,23 @@ function AddAccountModal({ onClose }: AddAccountModalProps) {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [onClose]);
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!isValid) return;
-    dispatch(
-      addAccount({
-        id: crypto.randomUUID(),
-        name: name.trim(),
-        type,
-        balance: 0,
-      }),
-    );
-    onClose();
+    if (!isValid || submitting) return;
+    setSubmitting(true);
+    try {
+      await dispatch(
+        createAccountThunk({
+          id: crypto.randomUUID(),
+          name: name.trim(),
+          type,
+          balance: 0,
+        }),
+      ).unwrap();
+      onClose();
+    } catch {
+      setSubmitting(false);
+    }
   }
 
   return createPortal(
@@ -79,14 +85,14 @@ function AddAccountModal({ onClose }: AddAccountModalProps) {
             </button>
             <button
               type="submit"
-              disabled={!isValid}
+              disabled={!isValid || submitting}
               className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors duration-150 ${
-                isValid
+                isValid && !submitting
                   ? 'bg-blue-500 text-white hover:bg-blue-600'
                   : 'bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-700 dark:text-gray-500'
               }`}
             >
-              Add account
+              {submitting ? 'Adding…' : 'Add account'}
             </button>
           </div>
         </form>

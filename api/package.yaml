@@ -1,0 +1,22 @@
+name:    finflow-api
+version: 0.1.0.0
+license: MIT
+
+dependencies:
+  - base >= 4.7 && < 5
+  - servant-server
+  - warp
+  - wai
+  - wai-cors
+  - aeson
+  - text
+
+executables:
+  finflow-api:
+    main:        Main.hs
+    source-dirs: src
+    ghc-options:
+      - -Wall
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N
