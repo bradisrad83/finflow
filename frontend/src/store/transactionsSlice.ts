@@ -1,6 +1,7 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import type { Transaction } from '../types';
+import type { RootState } from '.';
 import * as api from '../api';
 
 export interface TransactionsState {
@@ -19,7 +20,7 @@ const initialState: TransactionsState = {
 
 export const fetchTransactions = createAsyncThunk<Transaction[], string>(
   'transactions/fetchTransactions',
-  (accountId) => api.fetchTransactions(accountId),
+  (accountId, { signal }) => api.fetchTransactions(accountId, signal),
 );
 
 export const fetchAllTransactions = createAsyncThunk<Transaction[], string[]>(
@@ -35,6 +36,20 @@ export const fetchAllTransactions = createAsyncThunk<Transaction[], string[]>(
 export const createTransactionThunk = createAsyncThunk<Transaction, Transaction>(
   'transactions/create',
   (transaction) => api.createTransaction(transaction),
+);
+
+export const updateTransactionThunk = createAsyncThunk<
+  { updated: Transaction; previous: Transaction },
+  Transaction,
+  { state: RootState }
+>(
+  'transactions/update',
+  async (transaction, { getState }) => {
+    const previous =
+      getState().transactions.transactions.find((t) => t.id === transaction.id) ?? transaction;
+    const updated = await api.updateTransaction(transaction);
+    return { updated, previous };
+  },
 );
 
 export const deleteTransactionThunk = createAsyncThunk<Transaction, Transaction>(
@@ -57,6 +72,9 @@ const transactionsSlice = createSlice({
     removeTransaction: (state, action: PayloadAction<Transaction>) => {
       state.transactions = state.transactions.filter((t) => t.id !== action.payload.id);
     },
+    removeTransactionsByAccount: (state, action: PayloadAction<string>) => {
+      state.transactions = state.transactions.filter((t) => t.accountId !== action.payload);
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -74,7 +92,9 @@ const transactionsSlice = createSlice({
       })
       .addCase(fetchTransactions.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message ?? 'Failed to load transactions';
+        if (action.error.name !== 'AbortError') {
+          state.error = action.error.message ?? 'Failed to load transactions';
+        }
       })
       .addCase(fetchAllTransactions.pending, (state) => {
         state.loading = true;
@@ -88,8 +108,18 @@ const transactionsSlice = createSlice({
         state.loading = false;
         state.error = action.error.message ?? 'Failed to load transactions';
       })
-      .addCase(createTransactionThunk.fulfilled, (state, action) => {
-        state.transactions.push(action.payload);
+      .addCase(createTransactionThunk.pending, (state, action) => {
+        state.transactions.push(action.meta.arg);
+      })
+      .addCase(createTransactionThunk.fulfilled, () => {
+        // transaction already in store from pending — nothing to do
+      })
+      .addCase(createTransactionThunk.rejected, (state, action) => {
+        state.transactions = state.transactions.filter((t) => t.id !== action.meta.arg.id);
+      })
+      .addCase(updateTransactionThunk.fulfilled, (state, action) => {
+        const idx = state.transactions.findIndex((t) => t.id === action.payload.updated.id);
+        if (idx !== -1) state.transactions[idx] = action.payload.updated;
       })
       .addCase(deleteTransactionThunk.fulfilled, (state, action) => {
         state.transactions = state.transactions.filter((t) => t.id !== action.payload.id);
@@ -97,5 +127,5 @@ const transactionsSlice = createSlice({
   },
 });
 
-export const { addTransaction, removeTransaction } = transactionsSlice.actions;
+export const { addTransaction, removeTransaction, removeTransactionsByAccount } = transactionsSlice.actions;
 export default transactionsSlice.reducer;

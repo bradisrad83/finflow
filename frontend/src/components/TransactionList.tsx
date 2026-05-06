@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useReducer } from 'react';
 import { useDispatch } from 'react-redux';
 import type { AppDispatch } from '../store';
-import { createTransactionThunk, deleteTransactionThunk } from '../store/transactionsSlice';
+import { createTransactionThunk, deleteTransactionThunk, updateTransactionThunk } from '../store/transactionsSlice';
+import { useNotification } from '../context/NotificationContext';
 import type { Transaction } from '../types';
 import AddTransactionForm from './AddTransactionForm';
 import TransactionRow from './TransactionRow';
@@ -64,6 +65,7 @@ interface TransactionGroup {
 
 function TransactionList({ accountId, filters }: TransactionListProps) {
   const dispatch = useDispatch<AppDispatch>();
+  const { addNotification } = useNotification();
   const transactions = useTransactions(accountId, filters);
   const [toast, toastDispatch] = useReducer(toastReducer, { status: 'hidden' });
 
@@ -95,6 +97,18 @@ function TransactionList({ accountId, filters }: TransactionListProps) {
       }
     },
     [dispatch],
+  );
+
+  const handleUpdate = useCallback(
+    async (transaction: Transaction) => {
+      try {
+        await dispatch(updateTransactionThunk(transaction)).unwrap();
+        addNotification('Transaction updated');
+      } catch {
+        // silently fail — edit form handles its own error state
+      }
+    },
+    [dispatch, addNotification],
   );
 
   const handleUndo = useCallback(async () => {
@@ -137,6 +151,7 @@ function TransactionList({ accountId, filters }: TransactionListProps) {
                     key={transaction.id}
                     transaction={transaction}
                     onDelete={handleDelete}
+                    onUpdate={handleUpdate}
                   />
                 ))}
               </div>

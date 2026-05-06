@@ -25,3 +25,19 @@ export const selectUniqueCategories = createSelector(
   (transactions) =>
     [...new Set(transactions.map((t) => t.category))].sort((a, b) => a.localeCompare(b)),
 );
+
+export const selectNetWorth = createSelector(
+  selectAccounts,
+  (accounts) => accounts.reduce((sum, a) => sum + a.balance, 0),
+);
+
+export const selectMonthlyNet = createSelector(
+  selectAllTransactions,
+  (transactions) => {
+    const now = new Date();
+    const prefix = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    return transactions
+      .filter((t) => t.date.startsWith(prefix))
+      .reduce((net, t) => net + (t.type === 'credit' ? t.amount : -t.amount), 0);
+  },
+);

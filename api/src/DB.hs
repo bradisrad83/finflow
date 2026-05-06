@@ -116,6 +116,28 @@ removeTransaction :: Connection -> Text -> IO ()
 removeTransaction conn tid =
   execute conn "DELETE FROM transactions WHERE id = ?" (Only tid)
 
+updateTransaction :: Connection -> Transaction -> IO Transaction
+updateTransaction conn txn = do
+  execute conn
+    "UPDATE transactions SET description = ?, amount = ?, type = ?, category = ? WHERE id = ?"
+    ( transactionDescription txn
+    , transactionAmount txn
+    , transactionTypeToText (transactionType txn)
+    , transactionCategory txn
+    , transactionId txn
+    )
+  return txn
+
+updateAccount :: Connection -> Account -> IO Account
+updateAccount conn acc = do
+  execute conn "UPDATE accounts SET name = ? WHERE id = ?" (accountName acc, accountId acc)
+  return acc
+
+removeAccount :: Connection -> Text -> IO ()
+removeAccount conn aid = do
+  execute conn "DELETE FROM transactions WHERE account_id = ?" (Only aid)
+  execute conn "DELETE FROM accounts WHERE id = ?" (Only aid)
+
 -- ---------------------------------------------------------------------------
 -- Seed data
 -- ---------------------------------------------------------------------------

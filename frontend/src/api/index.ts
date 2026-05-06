@@ -21,6 +21,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   if (!res.ok) {
     throw new ApiError(res.status, await res.text());
   }
+  if (res.status === 204) return undefined as T;
   return res.json() as Promise<T>;
 }
 
@@ -38,12 +39,16 @@ export async function fetchBalances(): Promise<{ id: string; balance: number }[]
   ];
 }
 
-export async function fetchTransactions(accountId: string): Promise<Transaction[]> {
-  return request<Transaction[]>(`/accounts/${accountId}/transactions`);
+export async function fetchTransactions(accountId: string, signal?: AbortSignal): Promise<Transaction[]> {
+  return request<Transaction[]>(`/accounts/${accountId}/transactions`, { signal });
 }
 
 export async function createAccount(account: Account): Promise<Account> {
   return request<Account>('/accounts', { method: 'POST', body: JSON.stringify(account) });
+}
+
+export async function updateAccount(account: Account): Promise<Account> {
+  return request<Account>(`/accounts/${account.id}`, { method: 'PATCH', body: JSON.stringify(account) });
 }
 
 export async function createTransaction(transaction: Transaction): Promise<Transaction> {
@@ -53,8 +58,19 @@ export async function createTransaction(transaction: Transaction): Promise<Trans
   );
 }
 
+export async function updateTransaction(transaction: Transaction): Promise<Transaction> {
+  return request<Transaction>(`/transactions/${transaction.id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(transaction),
+  });
+}
+
 export async function deleteTransaction(id: string): Promise<void> {
   return request<void>(`/transactions/${id}`, { method: 'DELETE' });
+}
+
+export async function deleteAccount(id: string): Promise<void> {
+  return request<void>(`/accounts/${id}`, { method: 'DELETE' });
 }
 
 function sleep(ms: number): Promise<void> {

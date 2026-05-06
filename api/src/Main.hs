@@ -23,6 +23,9 @@ type API =
   :<|> "accounts" :> ReqBody '[JSON] Account :> Post '[JSON] Account
   :<|> "accounts" :> Capture "id" Text :> "transactions" :> ReqBody '[JSON] Transaction :> Post '[JSON] Transaction
   :<|> "transactions" :> Capture "id" Text :> DeleteNoContent
+  :<|> "accounts" :> Capture "id" Text :> DeleteNoContent
+  :<|> "accounts" :> Capture "id" Text :> ReqBody '[JSON] Account :> Patch '[JSON] Account
+  :<|> "transactions" :> Capture "id" Text :> ReqBody '[JSON] Transaction :> Patch '[JSON] Transaction
 
 -- ---------------------------------------------------------------------------
 -- Handlers
@@ -45,6 +48,17 @@ deleteTransaction conn tid = do
   liftIO $ DB.removeTransaction conn tid
   return NoContent
 
+deleteAccount :: Connection -> Text -> Handler NoContent
+deleteAccount conn aid = do
+  liftIO $ DB.removeAccount conn aid
+  return NoContent
+
+patchAccount :: Connection -> Text -> Account -> Handler Account
+patchAccount conn _ acc = liftIO $ DB.updateAccount conn acc
+
+patchTransaction :: Connection -> Text -> Transaction -> Handler Transaction
+patchTransaction conn _ txn = liftIO $ DB.updateTransaction conn txn
+
 -- ---------------------------------------------------------------------------
 -- Server
 -- ---------------------------------------------------------------------------
@@ -56,6 +70,9 @@ makeServer conn =
   :<|> postAccount    conn
   :<|> postTransaction conn
   :<|> deleteTransaction conn
+  :<|> deleteAccount conn
+  :<|> patchAccount conn
+  :<|> patchTransaction conn
 
 api :: Proxy API
 api = Proxy
@@ -70,7 +87,7 @@ main = do
   DB.initDB conn
   putStrLn "FinFlow API running on http://localhost:8080"
   let policy = simpleCorsResourcePolicy
-        { corsMethods        = ["GET", "POST", "DELETE", "OPTIONS"]
+        { corsMethods        = ["GET", "POST", "DELETE", "PATCH", "OPTIONS"]
         , corsRequestHeaders = ["Content-Type"]
         }
   run 8080 $ cors (const $ Just policy) $ serve api (makeServer conn)

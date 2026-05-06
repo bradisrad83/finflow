@@ -6,6 +6,7 @@ import Dashboard from './pages/Dashboard';
 import NotFound from './pages/NotFound';
 import usePersistStore from './hooks/usePersistStore';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
+import { NotificationProvider } from './context/NotificationContext';
 
 const AccountDetail = lazy(() => import('./pages/AccountDetail'));
 
@@ -34,6 +35,7 @@ function App() {
     <Provider store={store}>
       <StorePersistence />
       <ThemeProvider>
+        <NotificationProvider>
         <BrowserRouter>
           <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-150">
             <header className="border-b border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-950 px-8 py-4 flex items-center justify-between">
@@ -58,6 +60,7 @@ function App() {
             </main>
           </div>
         </BrowserRouter>
+        </NotificationProvider>
       </ThemeProvider>
     </Provider>
   );

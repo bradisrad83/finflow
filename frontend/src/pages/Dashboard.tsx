@@ -4,6 +4,7 @@ import type { AppDispatch } from '../store';
 import { fetchAccounts } from '../store/accountsSlice';
 import { fetchAllTransactions } from '../store/transactionsSlice';
 import { selectAccounts } from '../store/selectors';
+import NetWorthCard from '../components/NetWorthCard';
 import AccountsOverview from '../components/AccountsOverview';
 import SpendingSummary from '../components/SpendingSummary';
 
@@ -22,6 +23,7 @@ function Dashboard() {
 
   return (
     <>
+      <NetWorthCard />
       <AccountsOverview />
       <SpendingSummary />
     </>

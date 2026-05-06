@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import type { Account } from '../types';
-import { addTransaction, removeTransaction, createTransactionThunk, deleteTransactionThunk } from './transactionsSlice';
+import { addTransaction, removeTransaction, removeTransactionsByAccount, createTransactionThunk, deleteTransactionThunk, updateTransactionThunk } from './transactionsSlice';
 import * as api from '../api';
 
 export interface AccountsState {
@@ -24,6 +24,20 @@ export const fetchAccounts = createAsyncThunk<Account[]>(
 export const createAccountThunk = createAsyncThunk<Account, Account>(
   'accounts/create',
   (account) => api.createAccount(account),
+);
+
+export const renameAccountThunk = createAsyncThunk<Account, Account>(
+  'accounts/rename',
+  (account) => api.updateAccount(account),
+);
+
+export const deleteAccountThunk = createAsyncThunk<string, string>(
+  'accounts/delete',
+  async (accountId, { dispatch }) => {
+    await api.deleteAccount(accountId);
+    dispatch(removeTransactionsByAccount(accountId));
+    return accountId;
+  },
 );
 
 export const refreshBalances = createAsyncThunk<{ id: string; balance: number }[]>(
@@ -89,6 +103,20 @@ const accountsSlice = createSlice({
       })
       .addCase(createAccountThunk.fulfilled, (state, action) => {
         state.accounts.push(action.payload);
+      })
+      .addCase(updateTransactionThunk.fulfilled, (state, action) => {
+        const { updated, previous } = action.payload;
+        const account = state.accounts.find((a) => a.id === updated.accountId);
+        if (!account) return;
+        account.balance -= previous.type === 'credit' ? previous.amount : -previous.amount;
+        account.balance += updated.type === 'credit' ? updated.amount : -updated.amount;
+      })
+      .addCase(renameAccountThunk.fulfilled, (state, action) => {
+        const account = state.accounts.find((a) => a.id === action.payload.id);
+        if (account) account.name = action.payload.name;
+      })
+      .addCase(deleteAccountThunk.fulfilled, (state, action) => {
+        state.accounts = state.accounts.filter((a) => a.id !== action.payload);
       })
       .addCase(refreshBalances.pending, (state) => {
         state.loading = true;
