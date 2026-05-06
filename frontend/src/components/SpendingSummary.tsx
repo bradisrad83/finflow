@@ -1,6 +1,7 @@
-import { memo, useMemo } from 'react';
+import React, { memo, useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import type { RootState } from '../store';
+import { selectAllTransactions } from '../store/selectors';
+import type { Transaction } from '../types';
 
 interface CategoryRow {
   category: string;
@@ -13,7 +14,7 @@ interface CategoryGroup {
   income: CategoryRow[];
 }
 
-function aggregate(transactions: RootState['transactions']['transactions']): CategoryGroup {
+function aggregate(transactions: Transaction[]): CategoryGroup {
   const spendingMap = new Map<string, { total: number; count: number }>();
   const incomeMap = new Map<string, { total: number; count: number }>();
 
@@ -35,7 +36,7 @@ const fmt = (n: number) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);
 
 function SpendingSummary() {
-  const transactions = useSelector((state: RootState) => state.transactions.transactions);
+  const transactions = useSelector(selectAllTransactions);
 
   const { spending, income } = useMemo(() => aggregate(transactions), [transactions]);
 
@@ -55,16 +56,24 @@ function SpendingSummary() {
           </div>
           <div className="divide-y divide-gray-50 dark:divide-gray-700">
             {spending.map((row) => (
-              <div key={row.category} className="flex items-center justify-between px-5 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors duration-150">
-                <div>
-                  <span className="text-sm text-gray-800 dark:text-gray-100">{row.category}</span>
-                  <span className="ml-2 text-xs text-gray-400 dark:text-gray-500">
-                    {row.count} txn{row.count !== 1 ? 's' : ''}
+              <div key={row.category} className="px-5 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors duration-150">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="text-sm text-gray-800 dark:text-gray-100">{row.category}</span>
+                    <span className="ml-2 text-xs text-gray-400 dark:text-gray-500">
+                      {row.count} txn{row.count !== 1 ? 's' : ''}
+                    </span>
+                  </div>
+                  <span className="text-sm font-medium tabular-nums text-gray-700 dark:text-gray-300">
+                    {fmt(row.total)}
                   </span>
                 </div>
-                <span className="text-sm font-medium tabular-nums text-gray-700 dark:text-gray-300">
-                  {fmt(row.total)}
-                </span>
+                <div className="mt-2 h-1 rounded-full bg-gray-100 dark:bg-gray-700">
+                  <div
+                    className="h-1 rounded-full bg-blue-400 dark:bg-blue-500 w-[var(--bar-w)]"
+                    style={{ '--bar-w': `${((row.total / totalSpending) * 100).toFixed(1)}%` } as React.CSSProperties}
+                  />
+                </div>
               </div>
             ))}
           </div>
@@ -77,16 +86,24 @@ function SpendingSummary() {
           </div>
           <div className="divide-y divide-gray-50 dark:divide-gray-700">
             {income.map((row) => (
-              <div key={row.category} className="flex items-center justify-between px-5 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors duration-150">
-                <div>
-                  <span className="text-sm text-gray-800 dark:text-gray-100">{row.category}</span>
-                  <span className="ml-2 text-xs text-gray-400 dark:text-gray-500">
-                    {row.count} txn{row.count !== 1 ? 's' : ''}
+              <div key={row.category} className="px-5 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors duration-150">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="text-sm text-gray-800 dark:text-gray-100">{row.category}</span>
+                    <span className="ml-2 text-xs text-gray-400 dark:text-gray-500">
+                      {row.count} txn{row.count !== 1 ? 's' : ''}
+                    </span>
+                  </div>
+                  <span className="text-sm font-medium tabular-nums text-emerald-600 dark:text-emerald-400">
+                    {fmt(row.total)}
                   </span>
                 </div>
-                <span className="text-sm font-medium tabular-nums text-emerald-600 dark:text-emerald-400">
-                  {fmt(row.total)}
-                </span>
+                <div className="mt-2 h-1 rounded-full bg-gray-100 dark:bg-gray-700">
+                  <div
+                    className="h-1 rounded-full bg-emerald-400 dark:bg-emerald-500 w-[var(--bar-w)]"
+                    style={{ '--bar-w': `${((row.total / totalIncome) * 100).toFixed(1)}%` } as React.CSSProperties}
+                  />
+                </div>
               </div>
             ))}
           </div>

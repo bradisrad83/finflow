@@ -22,6 +22,14 @@ export const fetchTransactions = createAsyncThunk<Transaction[], string>(
   (accountId) => api.fetchTransactions(accountId),
 );
 
+export const fetchAllTransactions = createAsyncThunk<Transaction[], string[]>(
+  'transactions/fetchAll',
+  (accountIds) =>
+    Promise.all(accountIds.map((id) => api.fetchTransactions(id))).then((batches) =>
+      batches.flat()
+    ),
+);
+
 // --- write ---
 
 export const createTransactionThunk = createAsyncThunk<Transaction, Transaction>(
@@ -65,6 +73,18 @@ const transactionsSlice = createSlice({
         ];
       })
       .addCase(fetchTransactions.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message ?? 'Failed to load transactions';
+      })
+      .addCase(fetchAllTransactions.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchAllTransactions.fulfilled, (state, action) => {
+        state.loading = false;
+        state.transactions = action.payload;
+      })
+      .addCase(fetchAllTransactions.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message ?? 'Failed to load transactions';
       })

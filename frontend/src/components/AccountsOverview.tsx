@@ -1,15 +1,16 @@
 import { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import type { RootState, AppDispatch } from '../store';
+import type { AppDispatch } from '../store';
 import { refreshBalances } from '../store/accountsSlice';
+import { selectAccounts, selectAccountsLoading, selectAccountsError } from '../store/selectors';
 import AccountCard from './AccountCard';
 import AddAccountModal from './AddAccountModal';
 
 function AccountsOverview() {
   const dispatch = useDispatch<AppDispatch>();
-  const accounts = useSelector((state: RootState) => state.accounts.accounts);
-  const loading = useSelector((state: RootState) => state.accounts.loading);
-  const error = useSelector((state: RootState) => state.accounts.error);
+  const accounts = useSelector(selectAccounts);
+  const loading = useSelector(selectAccountsLoading);
+  const error = useSelector(selectAccountsError);
   const [modalOpen, setModalOpen] = useState(false);
 
   const totalBalance = accounts.reduce((sum, account) => sum + account.balance, 0);
@@ -54,9 +55,16 @@ function AccountsOverview() {
       </div>
       {modalOpen && <AddAccountModal onClose={() => setModalOpen(false)} />}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {accounts.map((account) => (
-          <AccountCard key={account.id} account={account} />
-        ))}
+        {loading && accounts.length === 0
+          ? Array.from({ length: 3 }).map((_, i) => (
+              <div
+                key={i}
+                className="h-36 rounded-2xl bg-gray-100 dark:bg-gray-800 animate-pulse"
+              />
+            ))
+          : accounts.map((account) => (
+              <AccountCard key={account.id} account={account} />
+            ))}
       </div>
     </section>
   );

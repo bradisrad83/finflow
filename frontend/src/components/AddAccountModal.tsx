@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import type { AppDispatch } from '../store';
 import { createAccountThunk } from '../store/accountsSlice';
 
@@ -10,6 +11,11 @@ interface AddAccountModalProps {
 
 function AddAccountModal({ onClose }: AddAccountModalProps) {
   const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
+  const formId = useId();
+  const nameId = `${formId}-name`;
+  const typeId = `${formId}-type`;
+
   const [name, setName] = useState('');
   const [type, setType] = useState<'checking' | 'savings'>('checking');
 
@@ -29,7 +35,7 @@ function AddAccountModal({ onClose }: AddAccountModalProps) {
     if (!isValid || submitting) return;
     setSubmitting(true);
     try {
-      await dispatch(
+      const account = await dispatch(
         createAccountThunk({
           id: crypto.randomUUID(),
           name: name.trim(),
@@ -38,6 +44,7 @@ function AddAccountModal({ onClose }: AddAccountModalProps) {
         }),
       ).unwrap();
       onClose();
+      navigate(`/accounts/${account.id}`);
     } catch {
       setSubmitting(false);
     }
@@ -58,22 +65,33 @@ function AddAccountModal({ onClose }: AddAccountModalProps) {
         </h2>
         <form onSubmit={handleSubmit}>
           <div className="flex flex-col gap-3">
-            <input
-              type="text"
-              placeholder="Account name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              autoFocus
-              className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-500/30 focus:border-blue-300 dark:focus:border-blue-400"
-            />
-            <select
-              value={type}
-              onChange={(e) => setType(e.target.value as 'checking' | 'savings')}
-              className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-500/30 focus:border-blue-300 dark:focus:border-blue-400"
-            >
-              <option value="checking">Checking</option>
-              <option value="savings">Savings</option>
-            </select>
+            <div className="flex flex-col gap-1">
+              <label htmlFor={nameId} className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                Account name
+              </label>
+              <input
+                id={nameId}
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                autoFocus
+                className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-500/30 focus:border-blue-300 dark:focus:border-blue-400"
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label htmlFor={typeId} className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                Account type
+              </label>
+              <select
+                id={typeId}
+                value={type}
+                onChange={(e) => setType(e.target.value as 'checking' | 'savings')}
+                className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-500/30 focus:border-blue-300 dark:focus:border-blue-400"
+              >
+                <option value="checking">Checking</option>
+                <option value="savings">Savings</option>
+              </select>
+            </div>
           </div>
           <div className="mt-5 flex justify-end gap-2">
             <button

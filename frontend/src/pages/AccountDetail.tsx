@@ -1,28 +1,34 @@
-import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useEffect, useRef } from 'react';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import type { AppDispatch, RootState } from '../store';
+import type { AppDispatch } from '../store';
 import { fetchTransactions } from '../store/transactionsSlice';
+import { selectAccountById, selectTransactionsLoading, selectTransactionsError } from '../store/selectors';
 import TransactionList from '../components/TransactionList';
 
 type FilterType = 'all' | 'credit' | 'debit';
 
 function AccountDetail() {
   const { id } = useParams<{ id: string }>();
-  const account = useSelector((state: RootState) =>
-    state.accounts.accounts.find((a) => a.id === id)
-  );
+  const account = useSelector(selectAccountById(id ?? ''));
 
   const dispatch = useDispatch<AppDispatch>();
-  const txLoading = useSelector((state: RootState) => state.transactions.loading);
-  const txError = useSelector((state: RootState) => state.transactions.error);
+  const txLoading = useSelector(selectTransactionsLoading);
+  const txError = useSelector(selectTransactionsError);
 
-  const [filterType, setFilterType] = useState<FilterType>('all');
-  const [query, setQuery] = useState('');
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  const [searchParams, setSearchParams] = useSearchParams();
+  const filterType = (searchParams.get('type') as FilterType) ?? 'all';
+  const query = searchParams.get('q') ?? '';
 
   useEffect(() => {
     if (id) dispatch(fetchTransactions(id));
   }, [id, dispatch]);
+
+  useEffect(() => {
+    if (!txLoading) searchRef.current?.focus();
+  }, [txLoading]);
 
   if (!account) {
     return (
@@ -66,7 +72,12 @@ function AccountDetail() {
             <button
               key={option.value}
               type="button"
-              onClick={() => setFilterType(option.value)}
+              onClick={() => setSearchParams((prev) => {
+                  const next = new URLSearchParams(prev);
+                  if (option.value === 'all') next.delete('type');
+                  else next.set('type', option.value);
+                  return next;
+                })}
               className={`px-3 py-1 text-sm font-medium rounded-md transition-colors duration-150 ${
                 filterType === option.value
                   ? 'bg-blue-500 text-white'
@@ -78,10 +89,16 @@ function AccountDetail() {
           ))}
         </div>
         <input
+          ref={searchRef}
           type="text"
           placeholder="Search description"
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => setSearchParams((prev) => {
+              const next = new URLSearchParams(prev);
+              if (e.target.value) next.set('q', e.target.value);
+              else next.delete('q');
+              return next;
+            })}
           className="flex-1 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-500/30 focus:border-blue-300 dark:focus:border-blue-400"
         />
       </div>

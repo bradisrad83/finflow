@@ -12,6 +12,7 @@ build-type:     Simple
 executable finflow-api
   main-is: Main.hs
   other-modules:
+      DB
       Types
       Paths_finflow_api
   hs-source-dirs:
@@ -21,6 +22,7 @@ executable finflow-api
       aeson
     , base >=4.7 && <5
     , servant-server
+    , sqlite-simple
     , text
     , wai
     , wai-cors

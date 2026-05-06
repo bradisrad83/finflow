@@ -40,6 +40,16 @@
   (major1) == 0 && (major2) <  20 || \
   (major1) == 0 && (major2) == 20 && (minor) <= 3)
 #endif /* MIN_VERSION_servant_server */
+/* package sqlite-simple-0.4.19.0 */
+#ifndef VERSION_sqlite_simple
+#define VERSION_sqlite_simple "0.4.19.0"
+#endif /* VERSION_sqlite_simple */
+#ifndef MIN_VERSION_sqlite_simple
+#define MIN_VERSION_sqlite_simple(major1,major2,minor) (\
+  (major1) <  0 || \
+  (major1) == 0 && (major2) <  4 || \
+  (major1) == 0 && (major2) == 4 && (minor) <= 19)
+#endif /* MIN_VERSION_sqlite_simple */
 /* package text-2.1.3 */
 #ifndef VERSION_text
 #define VERSION_text "2.1.3"
@@ -153,7 +163,7 @@
 #endif /* MIN_TOOL_VERSION_runghc */
 
 #ifndef CURRENT_COMPONENT_ID
-#define CURRENT_COMPONENT_ID "finflow-api-0.1.0.0-3GtNFbzjWIM7Ro3Fxj0xfE-finflow-api"
+#define CURRENT_COMPONENT_ID "finflow-api-0.1.0.0-HlOQBEOVRQz7Rp6qtYYSto-finflow-api"
 #endif /* CURRENT_COMPONENT_ID */
 #ifndef CURRENT_PACKAGE_VERSION
 #define CURRENT_PACKAGE_VERSION "0.1.0.0"

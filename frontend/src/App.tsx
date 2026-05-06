@@ -1,10 +1,13 @@
+import { lazy, Suspense } from 'react';
 import { Provider } from 'react-redux';
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import { store } from './store';
 import Dashboard from './pages/Dashboard';
-import AccountDetail from './pages/AccountDetail';
+import NotFound from './pages/NotFound';
 import usePersistStore from './hooks/usePersistStore';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
+
+const AccountDetail = lazy(() => import('./pages/AccountDetail'));
 
 function StorePersistence() {
   usePersistStore();
@@ -40,10 +43,18 @@ function App() {
               <ThemeToggle />
             </header>
             <main>
-              <Routes>
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/accounts/:id" element={<AccountDetail />} />
-              </Routes>
+              <Suspense fallback={
+                <div className="px-8 py-10">
+                  <div className="h-8 w-48 rounded-lg bg-gray-100 dark:bg-gray-800 animate-pulse mb-4" />
+                  <div className="h-4 w-32 rounded-lg bg-gray-100 dark:bg-gray-800 animate-pulse" />
+                </div>
+              }>
+                <Routes>
+                  <Route path="/" element={<Dashboard />} />
+                  <Route path="/accounts/:id" element={<AccountDetail />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </Suspense>
             </main>
           </div>
         </BrowserRouter>

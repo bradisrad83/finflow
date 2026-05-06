@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import type { RootState } from '../store';
 import type { Transaction } from '../types';
+import { selectAllTransactions } from '../store/selectors';
 
 export interface TransactionFilters {
   type?: 'all' | 'credit' | 'debit';
@@ -9,7 +9,7 @@ export interface TransactionFilters {
 }
 
 function useTransactions(accountId: string, filters?: TransactionFilters): Transaction[] {
-  const allTransactions = useSelector((state: RootState) => state.transactions.transactions);
+  const allTransactions = useSelector(selectAllTransactions);
 
   return useMemo(() => {
     let result = allTransactions.filter((t) => t.accountId === accountId);
@@ -23,7 +23,7 @@ function useTransactions(accountId: string, filters?: TransactionFilters): Trans
       result = result.filter((t) => t.description.toLowerCase().includes(q));
     }
 
-    return result;
+    return result.slice().sort((a, b) => b.date.localeCompare(a.date));
   }, [allTransactions, accountId, filters?.type, filters?.query]);
 }
 

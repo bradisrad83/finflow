@@ -10,6 +10,7 @@ dependencies:
   - wai-cors
   - aeson
   - text
+  - sqlite-simple
 
 executables:
   finflow-api:

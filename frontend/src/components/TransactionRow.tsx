@@ -1,6 +1,8 @@
 import { memo, useCallback } from 'react';
 import type { Transaction } from '../types';
 
+const fmtDate = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
 interface TransactionRowProps {
   transaction: Transaction;
   onDelete: (transaction: Transaction) => void;
@@ -18,7 +20,7 @@ function TransactionRow({ transaction, onDelete }: TransactionRowProps) {
           {transaction.description}
         </span>
         <span className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
-          {transaction.category} &middot; {transaction.date}
+          {transaction.category} &middot; {fmtDate.format(new Date(transaction.date + 'T00:00:00'))}
         </span>
       </div>
       <div className="flex items-center gap-3">

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useReducer } from 'react';
+import { useCallback, useEffect, useMemo, useReducer } from 'react';
 import { useDispatch } from 'react-redux';
 import type { AppDispatch } from '../store';
 import { createTransactionThunk, deleteTransactionThunk } from '../store/transactionsSlice';
@@ -37,12 +37,53 @@ function toastReducer(state: ToastState, action: ToastAction): ToastState {
   }
 }
 
+// --- date grouping ---
+
+function toLocalISO(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+const fmtGroupLabel = new Intl.DateTimeFormat('en-US', {
+  month: 'long',
+  day: 'numeric',
+  year: 'numeric',
+});
+
+function dateLabel(isoDate: string, today: string, yesterday: string): string {
+  if (isoDate === today) return 'Today';
+  if (isoDate === yesterday) return 'Yesterday';
+  return fmtGroupLabel.format(new Date(isoDate + 'T00:00:00'));
+}
+
+interface TransactionGroup {
+  label: string;
+  transactions: Transaction[];
+}
+
 // --- component ---
 
 function TransactionList({ accountId, filters }: TransactionListProps) {
   const dispatch = useDispatch<AppDispatch>();
   const transactions = useTransactions(accountId, filters);
   const [toast, toastDispatch] = useReducer(toastReducer, { status: 'hidden' });
+
+  const grouped = useMemo((): TransactionGroup[] => {
+    const now = new Date();
+    const prev = new Date(now);
+    prev.setDate(now.getDate() - 1);
+    const today = toLocalISO(now);
+    const yesterday = toLocalISO(prev);
+
+    const map = transactions.reduce<Map<string, Transaction[]>>((acc, t) => {
+      acc.set(t.date, [...(acc.get(t.date) ?? []), t]);
+      return acc;
+    }, new Map());
+
+    return Array.from(map.entries()).map(([date, txns]) => ({
+      label: dateLabel(date, today, yesterday),
+      transactions: txns,
+    }));
+  }, [transactions]);
 
   const handleDelete = useCallback(
     async (transaction: Transaction) => {
@@ -81,16 +122,25 @@ function TransactionList({ accountId, filters }: TransactionListProps) {
   return (
     <div className="mt-8">
       <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-50 mb-4">Transactions</h2>
-      {transactions.length === 0 ? (
+      {grouped.length === 0 ? (
         <p className="text-sm text-gray-400 dark:text-gray-500">No transactions for this account.</p>
       ) : (
-        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm divide-y divide-gray-50 dark:divide-gray-700">
-          {transactions.map((transaction) => (
-            <TransactionRow
-              key={transaction.id}
-              transaction={transaction}
-              onDelete={handleDelete}
-            />
+        <div className="space-y-5">
+          {grouped.map((group) => (
+            <div key={group.label}>
+              <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500 mb-2 px-1">
+                {group.label}
+              </p>
+              <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm divide-y divide-gray-50 dark:divide-gray-700">
+                {group.transactions.map((transaction) => (
+                  <TransactionRow
+                    key={transaction.id}
+                    transaction={transaction}
+                    onDelete={handleDelete}
+                  />
+                ))}
+              </div>
+            </div>
           ))}
         </div>
       )}

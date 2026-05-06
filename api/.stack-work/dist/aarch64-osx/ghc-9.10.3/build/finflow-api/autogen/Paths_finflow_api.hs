@@ -47,7 +47,7 @@ getBinDir, getLibDir, getDynLibDir, getDataDir, getLibexecDir, getSysconfDir :: 
 
 bindir, libdir, dynlibdir, datadir, libexecdir, sysconfdir :: FilePath
 bindir     = "/Users/bradgoldsmith/Desktop/macbook-air/repos/finflow/api/.stack-work/install/aarch64-osx/4cdbcba350f025af5f0f8c883af1639d176678d2b218ef98eabf74bf06eef94c/9.10.3/bin"
-libdir     = "/Users/bradgoldsmith/Desktop/macbook-air/repos/finflow/api/.stack-work/install/aarch64-osx/4cdbcba350f025af5f0f8c883af1639d176678d2b218ef98eabf74bf06eef94c/9.10.3/lib/aarch64-osx-ghc-9.10.3-fe9c/finflow-api-0.1.0.0-3GtNFbzjWIM7Ro3Fxj0xfE-finflow-api"
+libdir     = "/Users/bradgoldsmith/Desktop/macbook-air/repos/finflow/api/.stack-work/install/aarch64-osx/4cdbcba350f025af5f0f8c883af1639d176678d2b218ef98eabf74bf06eef94c/9.10.3/lib/aarch64-osx-ghc-9.10.3-fe9c/finflow-api-0.1.0.0-HlOQBEOVRQz7Rp6qtYYSto-finflow-api"
 dynlibdir  = "/Users/bradgoldsmith/Desktop/macbook-air/repos/finflow/api/.stack-work/install/aarch64-osx/4cdbcba350f025af5f0f8c883af1639d176678d2b218ef98eabf74bf06eef94c/9.10.3/lib/aarch64-osx-ghc-9.10.3-fe9c"
 datadir    = "/Users/bradgoldsmith/Desktop/macbook-air/repos/finflow/api/.stack-work/install/aarch64-osx/4cdbcba350f025af5f0f8c883af1639d176678d2b218ef98eabf74bf06eef94c/9.10.3/share/aarch64-osx-ghc-9.10.3-fe9c/finflow-api-0.1.0.0"
 libexecdir = "/Users/bradgoldsmith/Desktop/macbook-air/repos/finflow/api/.stack-work/install/aarch64-osx/4cdbcba350f025af5f0f8c883af1639d176678d2b218ef98eabf74bf06eef94c/9.10.3/libexec/aarch64-osx-ghc-9.10.3-fe9c/finflow-api-0.1.0.0"

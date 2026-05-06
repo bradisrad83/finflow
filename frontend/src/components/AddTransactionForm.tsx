@@ -1,7 +1,8 @@
-import { useState } from 'react';
-import { useDispatch } from 'react-redux';
+import { useId, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import type { AppDispatch } from '../store';
 import { createTransactionThunk } from '../store/transactionsSlice';
+import { selectUniqueCategories } from '../store/selectors';
 
 interface AddTransactionFormProps {
   accountId: string;
@@ -9,6 +10,14 @@ interface AddTransactionFormProps {
 
 function AddTransactionForm({ accountId }: AddTransactionFormProps) {
   const dispatch = useDispatch<AppDispatch>();
+  const categories = useSelector(selectUniqueCategories);
+  const formId = useId();
+
+  const descriptionId = `${formId}-description`;
+  const amountId = `${formId}-amount`;
+  const categoryId = `${formId}-category`;
+  const typeId = `${formId}-type`;
+  const datalistId = `${formId}-categories`;
 
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
@@ -52,6 +61,9 @@ function AddTransactionForm({ accountId }: AddTransactionFormProps) {
     }
   }
 
+  const labelClass = 'text-xs font-medium text-gray-500 dark:text-gray-400';
+  const inputClass = 'rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-500/30 focus:border-blue-300 dark:focus:border-blue-400';
+
   return (
     <form onSubmit={handleSubmit} className="mt-6 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-6">
       <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-4">Add Transaction</h3>
@@ -59,37 +71,56 @@ function AddTransactionForm({ accountId }: AddTransactionFormProps) {
         <p className="text-xs text-red-500 dark:text-red-400 mb-3">{submitError}</p>
       )}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <input
-          type="text"
-          placeholder="Description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          className="col-span-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-500/30 focus:border-blue-300 dark:focus:border-blue-400"
-        />
-        <input
-          type="number"
-          placeholder="Amount"
-          value={amount}
-          min="0.01"
-          step="0.01"
-          onChange={(e) => setAmount(e.target.value)}
-          className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-500/30 focus:border-blue-300 dark:focus:border-blue-400"
-        />
-        <input
-          type="text"
-          placeholder="Category"
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-          className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-500/30 focus:border-blue-300 dark:focus:border-blue-400"
-        />
-        <select
-          value={type}
-          onChange={(e) => setType(e.target.value as 'credit' | 'debit')}
-          className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-500/30 focus:border-blue-300 dark:focus:border-blue-400"
-        >
-          <option value="debit">Debit</option>
-          <option value="credit">Credit</option>
-        </select>
+        <div className="col-span-full flex flex-col gap-1">
+          <label htmlFor={descriptionId} className={labelClass}>Description</label>
+          <input
+            id={descriptionId}
+            type="text"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className={inputClass}
+          />
+        </div>
+        <div className="flex flex-col gap-1">
+          <label htmlFor={amountId} className={labelClass}>Amount</label>
+          <input
+            id={amountId}
+            type="number"
+            value={amount}
+            min="0.01"
+            step="0.01"
+            onChange={(e) => setAmount(e.target.value)}
+            className={inputClass}
+          />
+        </div>
+        <div className="flex flex-col gap-1">
+          <label htmlFor={categoryId} className={labelClass}>Category</label>
+          <input
+            id={categoryId}
+            type="text"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            list={datalistId}
+            className={inputClass}
+          />
+          <datalist id={datalistId}>
+            {categories.map((c) => (
+              <option key={c} value={c} />
+            ))}
+          </datalist>
+        </div>
+        <div className="flex flex-col gap-1">
+          <label htmlFor={typeId} className={labelClass}>Type</label>
+          <select
+            id={typeId}
+            value={type}
+            onChange={(e) => setType(e.target.value as 'credit' | 'debit')}
+            className={inputClass}
+          >
+            <option value="debit">Debit</option>
+            <option value="credit">Credit</option>
+          </select>
+        </div>
         <button
           type="submit"
           disabled={!isValid || submitting}

@@ -11,14 +11,15 @@ export interface AccountsState {
 }
 
 const initialState: AccountsState = {
-  accounts: [
-    { id: '1', name: 'Primary Checking', type: 'checking', balance: 12450.00 },
-    { id: '2', name: 'Emergency Savings', type: 'savings', balance: 8200.50 },
-    { id: '3', name: 'Travel Fund', type: 'savings', balance: 3100.75 },
-  ],
+  accounts: [],
   loading: false,
   error: null,
 };
+
+export const fetchAccounts = createAsyncThunk<Account[]>(
+  'accounts/fetchAll',
+  () => api.fetchAccounts(),
+);
 
 export const createAccountThunk = createAsyncThunk<Account, Account>(
   'accounts/create',
@@ -46,6 +47,18 @@ const accountsSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      .addCase(fetchAccounts.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchAccounts.fulfilled, (state, action) => {
+        state.loading = false;
+        state.accounts = action.payload;
+      })
+      .addCase(fetchAccounts.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message ?? 'Failed to load accounts';
+      })
       .addCase(addTransaction, (state, action) => {
         const { accountId, amount, type } = action.payload;
         const account = state.accounts.find((a) => a.id === accountId);
