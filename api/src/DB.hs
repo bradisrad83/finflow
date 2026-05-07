@@ -63,6 +63,7 @@ initDB conn = do
     \(id TEXT PRIMARY KEY, account_id TEXT NOT NULL, description TEXT NOT NULL, \
     \amount REAL NOT NULL, type TEXT NOT NULL, date TEXT NOT NULL, category TEXT NOT NULL)"
   seedIfEmpty conn
+  recalculateAllBalances conn
 
 seedIfEmpty :: Connection -> IO ()
 seedIfEmpty conn = do
@@ -70,6 +71,34 @@ seedIfEmpty conn = do
   when (n == 0) $ do
     mapM_ (insertAccount conn) seedAccounts
     mapM_ (insertTransaction conn) seedTransactions
+
+-- ---------------------------------------------------------------------------
+-- Balance helpers
+-- ---------------------------------------------------------------------------
+
+-- Recalculate a single account's balance from its transaction history.
+-- Called after every transaction insert, update, or delete.
+syncAccountBalance :: Connection -> Text -> IO ()
+syncAccountBalance conn aid =
+  execute conn
+    "UPDATE accounts \
+    \SET balance = (\
+    \  SELECT COALESCE(SUM(CASE WHEN type = 'credit' THEN amount ELSE -amount END), 0.0) \
+    \  FROM transactions WHERE account_id = ?\
+    \) \
+    \WHERE id = ?"
+    (aid, aid)
+
+-- Recalculate all account balances on startup — idempotent, ensures the
+-- database is consistent even if the server was previously stopped mid-write.
+recalculateAllBalances :: Connection -> IO ()
+recalculateAllBalances conn =
+  execute_ conn
+    "UPDATE accounts \
+    \SET balance = (\
+    \  SELECT COALESCE(SUM(CASE WHEN type = 'credit' THEN amount ELSE -amount END), 0.0) \
+    \  FROM transactions WHERE account_id = accounts.id\
+    \)"
 
 -- ---------------------------------------------------------------------------
 -- Queries
@@ -110,22 +139,30 @@ insertTransaction conn txn = do
     , transactionDate txn
     , transactionCategory txn
     )
+  syncAccountBalance conn (transactionAccountId txn)
   return txn
 
 removeTransaction :: Connection -> Text -> IO ()
-removeTransaction conn tid =
+removeTransaction conn tid = do
+  rows <- query conn "SELECT account_id FROM transactions WHERE id = ?" (Only tid)
+            :: IO [Only Text]
   execute conn "DELETE FROM transactions WHERE id = ?" (Only tid)
+  case rows of
+    [Only aid] -> syncAccountBalance conn aid
+    _          -> return ()
 
 updateTransaction :: Connection -> Transaction -> IO Transaction
 updateTransaction conn txn = do
   execute conn
-    "UPDATE transactions SET description = ?, amount = ?, type = ?, category = ? WHERE id = ?"
+    "UPDATE transactions SET description = ?, amount = ?, type = ?, category = ?, date = ? WHERE id = ?"
     ( transactionDescription txn
     , transactionAmount txn
     , transactionTypeToText (transactionType txn)
     , transactionCategory txn
+    , transactionDate txn
     , transactionId txn
     )
+  syncAccountBalance conn (transactionAccountId txn)
   return txn
 
 updateAccount :: Connection -> Account -> IO Account
@@ -144,9 +181,9 @@ removeAccount conn aid = do
 
 seedAccounts :: [Account]
 seedAccounts =
-  [ Account { accountId = "1", accountName = "Primary Checking",   accountType = Checking, accountBalance = 12450.00 }
-  , Account { accountId = "2", accountName = "Emergency Savings",  accountType = Savings,  accountBalance = 8200.50  }
-  , Account { accountId = "3", accountName = "Travel Fund",        accountType = Savings,  accountBalance = 3100.75  }
+  [ Account { accountId = "1", accountName = "Primary Checking",   accountType = Checking, accountBalance = 0 }
+  , Account { accountId = "2", accountName = "Emergency Savings",  accountType = Savings,  accountBalance = 0 }
+  , Account { accountId = "3", accountName = "Travel Fund",        accountType = Savings,  accountBalance = 0 }
   ]
 
 seedTransactions :: [Transaction]
