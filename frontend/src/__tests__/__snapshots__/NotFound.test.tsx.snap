@@ -1,0 +1,32 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`NotFound > matches the snapshot 1`] = `
+<div>
+  <section
+    class="px-8 py-20 flex flex-col items-center text-center"
+  >
+    <p
+      class="text-6xl font-semibold text-gray-200 dark:text-gray-700 select-none"
+    >
+      404
+    </p>
+    <h1
+      class="mt-4 text-xl font-semibold text-gray-900 dark:text-gray-50"
+    >
+      Page not found
+    </h1>
+    <p
+      class="mt-2 text-sm text-gray-400 dark:text-gray-500"
+    >
+      The URL you entered doesn't match any page in FinFlow.
+    </p>
+    <a
+      class="mt-6 rounded-lg px-4 py-2 text-sm font-medium bg-blue-500 text-white hover:bg-blue-600 transition-colors duration-150 shadow-sm"
+      data-discover="true"
+      href="/"
+    >
+      Back to dashboard
+    </a>
+  </section>
+</div>
+`;
