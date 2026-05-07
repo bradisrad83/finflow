@@ -5,6 +5,11 @@ import { createTransactionThunk } from '../store/transactionsSlice';
 import { selectUniqueCategories } from '../store/selectors';
 import Input from './Input';
 
+function todayISO(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
 interface AddTransactionFormProps {
   accountId: string;
 }
@@ -19,17 +24,20 @@ function AddTransactionForm({ accountId }: AddTransactionFormProps) {
   const categoryId = `${formId}-category`;
   const typeId = `${formId}-type`;
   const datalistId = `${formId}-categories`;
+  const dateId = `${formId}-date`;
 
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState('');
   const [type, setType] = useState<'credit' | 'debit'>('debit');
+  const [date, setDate] = useState(todayISO);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   const parsedAmount = parseFloat(amount);
   const isValid =
     description.trim() !== '' &&
     category.trim() !== '' &&
+    date !== '' &&
     !isNaN(parsedAmount) &&
     parsedAmount > 0;
 
@@ -45,13 +53,14 @@ function AddTransactionForm({ accountId }: AddTransactionFormProps) {
       amount: parsedAmount,
       category: category.trim(),
       type,
-      date: new Date().toISOString().split('T')[0],
+      date,
     };
 
     setDescription('');
     setAmount('');
     setCategory('');
     setType('debit');
+    setDate(todayISO());
 
     try {
       await dispatch(createTransactionThunk(transaction)).unwrap();
@@ -105,12 +114,22 @@ function AddTransactionForm({ accountId }: AddTransactionFormProps) {
           </datalist>
         </div>
         <div className="flex flex-col gap-1">
+          <label htmlFor={dateId} className={labelClass}>Date</label>
+          <Input
+            id={dateId}
+            type="date"
+            value={date}
+            max={todayISO()}
+            onChange={(e) => setDate(e.target.value)}
+          />
+        </div>
+        <div className="flex flex-col gap-1">
           <label htmlFor={typeId} className={labelClass}>Type</label>
           <select
             id={typeId}
             value={type}
             onChange={(e) => setType(e.target.value as 'credit' | 'debit')}
-            className={inputClass}
+            className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-500/30 focus:border-blue-300 dark:focus:border-blue-400"
           >
             <option value="debit">Debit</option>
             <option value="credit">Credit</option>

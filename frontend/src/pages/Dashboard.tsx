@@ -5,10 +5,12 @@ import { fetchAccounts } from '../store/accountsSlice';
 import { fetchAllTransactions } from '../store/transactionsSlice';
 import { selectAccounts } from '../store/selectors';
 import NetWorthCard from '../components/NetWorthCard';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import AccountsOverview from '../components/AccountsOverview';
 import SpendingSummary from '../components/SpendingSummary';
 
 function Dashboard() {
+  useDocumentTitle('FinFlow');
   const dispatch = useDispatch<AppDispatch>();
   const accounts = useSelector(selectAccounts);
 

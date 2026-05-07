@@ -7,13 +7,17 @@ import { deleteAccountThunk, renameAccountThunk } from '../store/accountsSlice';
 import { selectAccountById, selectTransactionsLoading, selectTransactionsError } from '../store/selectors';
 import { useNotification } from '../context/NotificationContext';
 import TransactionList from '../components/TransactionList';
+import useTransactions from '../hooks/useTransactions';
 import Input from '../components/Input';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 type FilterType = 'all' | 'credit' | 'debit';
 
 function AccountDetail() {
   const { id } = useParams<{ id: string }>();
   const account = useSelector(selectAccountById(id ?? ''));
+
+  useDocumentTitle(account?.name ?? 'FinFlow');
 
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
@@ -71,6 +75,7 @@ function AccountDetail() {
   const query = searchParams.get('q') ?? '';
   const deferredQuery = useDeferredValue(query);
   const isStale = query !== deferredQuery;
+  const transactions = useTransactions(account?.id ?? '', { type: filterType, query: deferredQuery });
 
   useEffect(() => {
     if (!id) return;
@@ -97,6 +102,26 @@ function AccountDetail() {
     style: 'currency',
     currency: 'USD',
   }).format(account.balance);
+
+  function downloadCSV() {
+    const header = 'Date,Description,Category,Type,Amount\n';
+    const rows = transactions
+      .map((t) => [
+        t.date,
+        `"${t.description.replace(/"/g, '""')}"`,
+        `"${t.category.replace(/"/g, '""')}"`,
+        t.type,
+        t.amount.toFixed(2),
+      ].join(','))
+      .join('\n');
+    const blob = new Blob([header + rows], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${account.name.replace(/[^a-z0-9]/gi, '-').toLowerCase()}-transactions.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
 
   const filterOptions: { value: FilterType; label: string }[] = [
     { value: 'all', label: 'All' },
@@ -204,6 +229,14 @@ function AccountDetail() {
             })}
           className="flex-1 shadow-sm"
         />
+        <button
+          type="button"
+          onClick={downloadCSV}
+          disabled={transactions.length === 0}
+          className="rounded-lg px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-blue-300 hover:text-blue-500 dark:hover:border-blue-400 dark:hover:text-blue-400 shadow-sm transition-colors duration-150 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Export CSV
+        </button>
       </div>
       {txError && (
         <p className="mt-6 text-sm text-red-500 dark:text-red-400">{txError}</p>

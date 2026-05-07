@@ -29,15 +29,6 @@ export async function fetchAccounts(): Promise<Account[]> {
   return request<Account[]>('/accounts');
 }
 
-export async function fetchBalances(): Promise<{ id: string; balance: number }[]> {
-  // No Haskell endpoint yet — still mocked.
-  await sleep(1000);
-  return [
-    { id: '1', balance: round(10000 + Math.random() * 5000) },
-    { id: '2', balance: round(7000 + Math.random() * 3000) },
-    { id: '3', balance: round(2500 + Math.random() * 1500) },
-  ];
-}
 
 export async function fetchTransactions(accountId: string, signal?: AbortSignal): Promise<Transaction[]> {
   return request<Transaction[]>(`/accounts/${accountId}/transactions`, { signal });
@@ -73,10 +64,3 @@ export async function deleteAccount(id: string): Promise<void> {
   return request<void>(`/accounts/${id}`, { method: 'DELETE' });
 }
 
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-function round(n: number): number {
-  return Math.round(n * 100) / 100;
-}

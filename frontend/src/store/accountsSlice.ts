@@ -1,7 +1,8 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import type { Account } from '../types';
-import { addTransaction, removeTransaction, removeTransactionsByAccount, createTransactionThunk, deleteTransactionThunk, updateTransactionThunk } from './transactionsSlice';
+import type { RootState } from '.';
+import { addTransaction, removeTransaction, removeTransactionsByAccount, createTransactionThunk, deleteTransactionThunk, updateTransactionThunk, fetchAllTransactions } from './transactionsSlice';
 import * as api from '../api';
 
 export interface AccountsState {
@@ -40,9 +41,22 @@ export const deleteAccountThunk = createAsyncThunk<string, string>(
   },
 );
 
-export const refreshBalances = createAsyncThunk<{ id: string; balance: number }[]>(
+export const refreshBalances = createAsyncThunk<
+  { id: string; balance: number }[],
+  void,
+  { state: RootState }
+>(
   'accounts/refreshBalances',
-  () => api.fetchBalances(),
+  (_, { getState }) => {
+    const { accounts } = getState().accounts;
+    const { transactions } = getState().transactions;
+    return accounts.map((account) => ({
+      id: account.id,
+      balance: transactions
+        .filter((t) => t.accountId === account.id)
+        .reduce((sum, t) => sum + (t.type === 'credit' ? t.amount : -t.amount), 0),
+    }));
+  },
 );
 
 const accountsSlice = createSlice({
@@ -117,6 +131,14 @@ const accountsSlice = createSlice({
       })
       .addCase(deleteAccountThunk.fulfilled, (state, action) => {
         state.accounts = state.accounts.filter((a) => a.id !== action.payload);
+      })
+      .addCase(fetchAllTransactions.fulfilled, (state, action) => {
+        const transactions = action.payload;
+        state.accounts.forEach((account) => {
+          account.balance = transactions
+            .filter((t) => t.accountId === account.id)
+            .reduce((sum, t) => sum + (t.type === 'credit' ? t.amount : -t.amount), 0);
+        });
       })
       .addCase(refreshBalances.pending, (state) => {
         state.loading = true;

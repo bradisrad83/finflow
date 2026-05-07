@@ -8,6 +8,11 @@ const fmtDate = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric
 const fmtAmt = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
 const datalistId = 'txn-edit-categories';
 
+function todayISO(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
 interface TransactionRowProps {
   transaction: Transaction;
   onDelete: (transaction: Transaction) => void;
@@ -63,6 +68,14 @@ function TransactionRow({ transaction, onDelete, onUpdate }: TransactionRowProps
           className="py-1.5"
         />
         <div className="grid grid-cols-2 gap-2">
+          <Input
+            aria-label="Date"
+            type="date"
+            value={draft.date}
+            max={todayISO()}
+            onChange={(e) => setDraft({ ...draft, date: e.target.value })}
+            className="py-1.5"
+          />
           <Input
             aria-label="Amount"
             type="number"
